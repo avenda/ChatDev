@@ -82,6 +82,8 @@ parser.add_argument('--model', type=str, default="GPT_3_5_TURBO",
                     help="GPT Model, choose from {'GPT_3_5_TURBO','GPT_4','GPT_4_32K', 'GPT_4_TURBO'}")
 parser.add_argument('--path', type=str, default="",
                     help="Your file directory, ChatDev will build upon your software in the Incremental mode")
+parser.add_argument('--prompt_file', type=str, default="",
+                    help="Path to the .prompt file")
 args = parser.parse_args()
 
 # Start ChatDev
@@ -91,6 +93,7 @@ args = parser.parse_args()
 # ----------------------------------------
 config_path, config_phase_path, config_role_path = get_config(args.config)
 args2type = {'GPT_3_5_TURBO': ModelType.GPT_3_5_TURBO,
+             'GPT_3_5_TURBO_NEW': ModelType.GPT_3_5_TURBO_NEW,  # new openai api version
              'GPT_4': ModelType.GPT_4,
              'GPT_4_32K': ModelType.GPT_4_32k,
              'GPT_4_TURBO': ModelType.GPT_4_TURBO,
@@ -98,11 +101,18 @@ args2type = {'GPT_3_5_TURBO': ModelType.GPT_3_5_TURBO,
              }
 if openai_new_api:
     args2type['GPT_3_5_TURBO'] = ModelType.GPT_3_5_TURBO_NEW
+    
+# If --prompt_file is provided, read the prompt from the file
+if args.prompt_file:
+    with open(args.prompt_file, 'r') as file:
+        task_prompt = file.read().strip()
+else:
+    task_prompt = args.task
 
 chat_chain = ChatChain(config_path=config_path,
                        config_phase_path=config_phase_path,
                        config_role_path=config_role_path,
-                       task_prompt=args.task,
+                       task_prompt=task_prompt,
                        project_name=args.name,
                        org_name=args.org,
                        model_type=args2type[args.model],
